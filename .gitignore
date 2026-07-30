@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Node.js build artifacts and package stores
+node_modules/
+dist/
+.parcel-cache/
+.pnpm-store/
+
+# Local agent and editor state
+.kilo/
+.kilocode/
+.playwright-mcp/
+.vscode/
+.idea/
+
+# Operating-system files and logs
+.DS_Store
+Thumbs.db
+*.log

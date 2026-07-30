@@ -1,0 +1,53 @@
+/* iOS 26-inspired control strip: compact, fluid and deliberately glassy. */
+.composer-wrap { width: min(calc(100vw - 310px), 1320px); max-width: none; right: auto; }
+.composer {
+  grid-template-columns: minmax(270px, 1.25fr) minmax(264px, .92fr) 148px 154px;
+  gap: 12px;
+  padding: 11px 16px;
+  background: color-mix(in srgb, var(--glass-strong) 82%, transparent);
+  border-color: color-mix(in srgb, var(--glass-border) 88%, #b7c5ff 12%);
+  box-shadow: 0 22px 56px rgba(57, 65, 142, .20), inset 0 1px 0 rgba(255,255,255,.74);
+}
+.dark .composer { box-shadow: 0 25px 68px rgba(0,0,0,.36), inset 0 1px 0 rgba(230,236,255,.12); }
+.composer-source { padding-left: 6px; }
+.source-input.glass-control {
+  height: 38px;
+  margin-top: 2px;
+  padding: 0 12px;
+  border: 1px solid var(--glass-control-border);
+  border-radius: 13px;
+  background: var(--glass-control);
+}
+.source-input.glass-control:hover { background:var(--glass-control-hover); }
+.source-input.glass-control:focus-visible { background:var(--glass-control-focus); }
+.composer-artifact { min-width: 0; }
+.artifact-switch { position: relative; width: fit-content; max-width: 100%; padding: 3px; overflow: hidden; background: rgba(121,134,214,.14); border: 1px solid rgba(255,255,255,.2); }
+.artifact-switch::before { content:""; position:absolute; z-index:0; top:3px; left:3px; width:70px; height:29px; border-radius:8px; background:linear-gradient(135deg,rgba(255,255,255,.93),rgba(224,230,255,.67)); box-shadow:0 3px 11px rgba(60,71,154,.18), inset 0 1px 0 rgba(255,255,255,.94); transition:transform .48s cubic-bezier(.2,.85,.25,1.18), background .25s ease; }
+.dark .artifact-switch::before { background:linear-gradient(135deg,rgba(138,151,255,.37),rgba(114,85,204,.34)); box-shadow:0 4px 13px rgba(0,0,0,.25), inset 0 1px 0 rgba(230,236,255,.16); }
+.artifact-switch:has(.artifact-tab:nth-child(2).active)::before { transform:translateX(70px); }
+.artifact-switch:has(.artifact-tab:nth-child(3).active)::before { transform:translateX(140px); }
+.artifact-switch:has(.artifact-tab:nth-child(4).active)::before { transform:translateX(210px); }
+.artifact-tab { position:relative; z-index:1; width:70px; justify-content:center; padding:0 5px; transition:color .22s ease, transform .22s ease; }
+.artifact-tab:hover { transform:translateY(-1px); }.artifact-tab.active { background:transparent; box-shadow:none; color:#5362dc; }.dark .artifact-tab.active { background:transparent; color:#e1e5ff; }
+.composer-options { min-width:0; height:51px; align-content:center; gap:3px; }
+.scope-select { width:148px; height:32px; min-height:32px; box-sizing:border-box; padding:0 9px; line-height:1; border:1px solid rgba(143,156,243,.58); border-radius:999px; background:rgba(255,255,255,.16); font-size:10px; transition:background .2s ease, border-color .2s ease; }
+.scope-select > span,
+.scope-select > span > span { display:inline-flex; align-items:center; min-width:0; gap:6px; line-height:1; }
+.scope-select > span > span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.scope-select > span svg { width:15px; height:15px; flex:0 0 auto; }
+.scope-select-content { min-width:148px; width:148px; padding:0; border-radius:16px; }
+.scope-select-content [data-radix-select-viewport] { padding:4px; }
+.scope-select-content [role="option"] { min-height:30px; padding:0 9px; border-radius:10px; font-size:10px; }
+.scope-select-content .select-option { display:inline-flex; align-items:center; gap:7px; min-width:0; white-space:nowrap; line-height:1; }
+.scope-select-content .select-option svg { width:16px; height:16px; flex:0 0 auto; }
+.scope-select:hover,.scope-select[data-state="open"] { background:rgba(255,255,255,.35); border-color:rgba(134,149,251,.95); }
+.dark .scope-select { background:rgba(12,18,47,.25); }.dark .scope-select:hover,.dark .scope-select[data-state="open"] { background:rgba(64,75,141,.35); }
+.force-toggle { height:18px; padding-left:3px; font-size:10px !important; line-height:18px; }
+.force-toggle button { flex:0 0 auto; }
+.install-button { min-height:51px; padding:0 14px; color:hsl(var(--foreground)); background:var(--glass-control); border:1px solid var(--glass-control-border); box-shadow:0 11px 24px rgba(10,16,55,.12),inset 0 1px 0 rgba(255,255,255,.36); backdrop-filter:blur(22px) saturate(1.35); transition:transform .2s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease; }
+.install-button:hover:not(:disabled) { transform:translateY(-1px); background:var(--glass-control-hover); border-color:rgba(132,147,248,.72); box-shadow:0 15px 28px rgba(71,82,175,.19),inset 0 1px 0 rgba(255,255,255,.46); }
+.install-button:focus-visible { outline:none; border-color:rgba(115,132,238,.92); box-shadow:0 0 0 4px var(--glass-control-ring),inset 0 1px 0 rgba(255,255,255,.42); }
+.install-button:disabled { color:var(--subtle); background:transparent; border-color:var(--glass-control-border); box-shadow:none; opacity:.56; }
+.install-button small { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.20); }
+@media (max-width:1120px) { .composer { grid-template-columns:minmax(230px,1fr) minmax(260px,.9fr) 154px; }.composer-options { display:grid; }.install-button { grid-column:3; }.artifact-tab { width:60px; }.artifact-switch::before { width:60px; }.artifact-switch:has(.artifact-tab:nth-child(2).active)::before { transform:translateX(60px); }.artifact-switch:has(.artifact-tab:nth-child(3).active)::before { transform:translateX(120px); }.artifact-switch:has(.artifact-tab:nth-child(4).active)::before { transform:translateX(180px); } }
+@media (max-width:860px) { .composer-wrap { width:auto; right:18px; }.composer { grid-template-columns:1fr auto; }.composer-options { display:none; }.artifact-switch { width:100%; }.artifact-tab { flex:1; width:auto; }.artifact-switch::before { width:calc(25% - 3px); }.artifact-switch:has(.artifact-tab:nth-child(2).active)::before { transform:translateX(100%); }.artifact-switch:has(.artifact-tab:nth-child(3).active)::before { transform:translateX(200%); }.artifact-switch:has(.artifact-tab:nth-child(4).active)::before { transform:translateX(300%); } }

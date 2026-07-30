@@ -1,0 +1,19 @@
+/* Accessibility and responsive safeguards for the Liquid Glass shell. */
+.dark {
+  --subtle: #b6bfd9;
+}
+
+@media (max-width: 860px) {
+  .workspace {
+    padding-bottom: 30px;
+  }
+
+.composer-wrap {
+  position: static;
+  margin: 18px 0 0;
+}
+
+html { --glass-amount:50%; --glass-tint:#ffffff; --glass-strong-amount:70%; }
+.dark { --glass-tint:#202950; }
+html[data-glass-level] { --glass-strong-amount:clamp(0%,calc(var(--glass-amount) + 20%),100%); --glass:color-mix(in srgb,var(--glass-tint) var(--glass-amount),transparent); --glass-strong:color-mix(in srgb,var(--glass-tint) var(--glass-strong-amount),transparent); }
+}
