@@ -14,6 +14,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional
+from urllib.parse import parse_qs, unquote, urlsplit, urlunsplit
 
 import skill_installer as legacy
 from agent_registry import AGENTS_BY_ID, AgentDefinition
@@ -27,11 +28,69 @@ def _log(callback: Optional[LogCallback], message: str, level: str = "info") -> 
         callback(message, level)
 
 
-def _skill_root(source: Path) -> Optional[Path]:
-    if (source / "SKILL.md").is_file():
-        return source
-    candidates = [child for child in source.iterdir() if child.is_dir() and (child / "SKILL.md").is_file()]
-    return candidates[0] if len(candidates) == 1 else None
+def _skill_roots(source: Path) -> List[Path]:
+    """Return every skill directory in a source, excluding Git metadata."""
+    candidates = []
+    for manifest in source.rglob("SKILL.md"):
+        if ".git" not in manifest.parts:
+            candidates.append(manifest.parent)
+    return sorted(candidates, key=lambda item: str(item).lower())
+
+
+def _split_skill_selector(source: str) -> tuple[str, Optional[str]]:
+    """Allow selecting a skill inside a multi-skill repository with #skill=NAME."""
+    cleaned = source.strip()
+    local_source, marker, fragment = cleaned.partition("#")
+    if marker and fragment.startswith("skill="):
+        return local_source, unquote(fragment[len("skill="):]).strip() or None
+    parsed = urlsplit(cleaned)
+    if parsed.scheme not in {"http", "https", "git"}:
+        return cleaned, None
+    selector = parse_qs(parsed.fragment).get("skill", [None])[0]
+    clone_url = urlunsplit((parsed.scheme, parsed.netloc, parsed.path, parsed.query, ""))
+    return clone_url, unquote(selector).strip() if selector else None
+
+
+def _select_skill_root(candidates: List[Path], selector: Optional[str], default_name: Optional[str]) -> Path:
+    if not candidates:
+        raise ValueError("Source does not contain a SKILL.md file")
+    if selector:
+        selected = [item for item in candidates if item.name == selector]
+        if len(selected) == 1:
+            return selected[0]
+        available = ", ".join(item.name for item in candidates)
+        raise ValueError(f"Skill '{selector}' was not found. Available skills: {available}")
+    if len(candidates) == 1:
+        return candidates[0]
+    default = [item for item in candidates if item.name == default_name]
+    if len(default) == 1:
+        return default[0]
+    available = ", ".join(item.name for item in candidates)
+    raise ValueError(
+        "Source contains multiple skills. Select one with a URL fragment, for example "
+        f"#skill=NAME. Available skills: {available}"
+    )
+
+
+def _repository_name(url: str) -> Optional[str]:
+    path = urlsplit(url).path.rstrip("/")
+    name = Path(path).name
+    return name[:-4] if name.endswith(".git") else name or None
+
+
+def _clone_source(source: str, destination: Path, log_callback: Optional[LogCallback]) -> None:
+    _log(log_callback, f"Cloning skill source: {source}")
+    proc = subprocess.run(
+        ["git", "clone", "--depth", "1", source, str(destination)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if proc.returncode == 0:
+        return
+    detail = (proc.stderr or proc.stdout or "git clone failed").strip()
+    _log(log_callback, f"git clone failed (exit {proc.returncode}): {detail}", "error")
+    raise RuntimeError(f"git clone failed (exit {proc.returncode}): {detail}")
 
 
 def _materialize_source(source: str):
@@ -40,22 +99,15 @@ def _materialize_source(source: str):
         yield local, None
         return
 
-    normalized = legacy.normalize_github_url(source.strip())
+    clone_source, _ = _split_skill_selector(source)
+    normalized = legacy.normalize_github_url(clone_source)
     strategy, _ = legacy.parse_url(normalized)
     if strategy != "git_clone":
         raise ValueError("A Skill source must be a local directory or a Git repository URL")
 
     with tempfile.TemporaryDirectory(prefix="skillforge-") as temp_dir:
         destination = Path(temp_dir) / "source"
-        _log(None, f"Cloning source into {destination}")
-        proc = subprocess.run(
-            ["git", "clone", "--depth", "1", normalized, str(destination)],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        if proc.returncode != 0:
-            raise RuntimeError((proc.stderr or proc.stdout or "git clone failed").strip())
+        _clone_source(normalized, destination, None)
         yield destination, None
 
 
@@ -84,24 +136,22 @@ def install_skill(
     with tempfile.TemporaryDirectory(prefix="skillforge-work-") as workspace:
         prepared_root: Optional[Path] = None
         try:
-            local = Path(os.path.expandvars(os.path.expanduser(source))).resolve()
+            clone_source, selector = _split_skill_selector(source)
+            local = Path(os.path.expandvars(os.path.expanduser(clone_source))).resolve()
+            default_name: Optional[str] = None
             if local.is_dir():
                 prepared_root = local
             else:
-                normalized = legacy.normalize_github_url(source.strip())
+                normalized = legacy.normalize_github_url(clone_source)
                 strategy, _ = legacy.parse_url(normalized)
                 if strategy != "git_clone":
                     raise ValueError("Skill source must be a local directory or Git repository URL")
                 destination = Path(workspace) / "source"
-                _log(log_callback, f"Cloning skill source: {normalized}")
-                proc = subprocess.run(["git", "clone", "--depth", "1", normalized, str(destination)], capture_output=True, text=True, check=False)
-                if proc.returncode != 0:
-                    raise RuntimeError((proc.stderr or proc.stdout or "git clone failed").strip())
+                _clone_source(normalized, destination, log_callback)
                 prepared_root = destination
+                default_name = _repository_name(normalized)
 
-            skill_root = _skill_root(prepared_root)
-            if not skill_root:
-                raise ValueError("Source does not contain exactly one discoverable SKILL.md")
+            skill_root = _select_skill_root(_skill_roots(prepared_root), selector, default_name)
             skill_name = skill_root.name
 
             for agent in selected:
@@ -119,6 +169,7 @@ def install_skill(
                     _log(log_callback, f"{agent.name}: {exc}", "error")
                     results.append({"agent_id": agent.id, "status": "failed", "destination": str(target), "message": str(exc)})
         except Exception as exc:  # noqa: BLE001
+            _log(log_callback, f"Installation failed: {exc}", "error")
             for agent in selected:
                 results.append({"agent_id": agent.id, "status": "failed", "destination": "", "message": str(exc)})
     return results

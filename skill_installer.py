@@ -130,9 +130,11 @@ def get_vscode_projects_windows() -> List[str]:
             cmdline = line[len("CommandLine="):]
             print(_dim(f"[DEBUG] Raw command line: {cmdline}"))
             candidates = _extract_paths_from_cmdline(cmdline)
-            raw_candidates.extend(candidates)
             for path in candidates:
                 normalized = os.path.abspath(path)
+                if _is_vscode_install_path(normalized):
+                    continue
+                raw_candidates.append(normalized)
                 if os.path.isdir(normalized) and normalized not in projects:
                     projects.append(normalized)
 
@@ -189,9 +191,11 @@ def get_vscode_projects_powershell() -> List[str]:
             process_count += 1
             print(_dim(f"[DEBUG] Raw command line: {line}"))
             candidates = _extract_paths_from_cmdline(line)
-            raw_candidates.extend(candidates)
             for path in candidates:
                 normalized = os.path.abspath(path)
+                if _is_vscode_install_path(normalized):
+                    continue
+                raw_candidates.append(normalized)
                 if os.path.isdir(normalized) and normalized not in projects:
                     projects.append(normalized)
     except Exception as e:
@@ -360,6 +364,17 @@ def _looks_like_project_path(s: str) -> bool:
     if re.match(r"^[A-Za-z]:\\", s) or s.startswith("\\\\"):
         return True
     return False
+
+
+def _is_vscode_install_path(path: str) -> bool:
+    """Exclude VS Code's own folders accidentally exposed in process arguments."""
+    normalized = os.path.normcase(os.path.normpath(path))
+    markers = (
+        os.path.normcase(os.path.normpath(os.path.join("AppData", "Roaming", "Code"))),
+    )
+    is_code_app = "microsoft vs code" in normalized and normalized.endswith(os.path.normcase("resources\\app"))
+    is_insiders_app = "code - insiders" in normalized and normalized.endswith(os.path.normcase("resources\\app"))
+    return any(marker in normalized for marker in markers) or is_code_app or is_insiders_app
 
 
 # ---------------------------------------------------------------------------

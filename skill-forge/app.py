@@ -25,6 +25,7 @@ CORS(app)
 
 log_queues: dict[str, queue.Queue] = {}
 jobs: dict[str, dict[str, Any]] = {}
+active_install_keys: dict[str, str] = {}
 lock = threading.Lock()
 
 VALID_SCOPES = {"project", "global"}
@@ -34,6 +35,7 @@ VALID_ARTIFACTS = {"skill", "agent", "mcp", "plugin"}
 def _enqueue(job_id: str, message: str, level: str = "info", **extra: Any) -> None:
     item = {"jobId": job_id, "level": level, "message": message, "ts": time.time(), **extra}
     with lock:
+        jobs.setdefault(job_id, {}).setdefault("events", []).append(item)
         q = log_queues.get(job_id)
         if q is not None:
             q.put(item)
@@ -92,6 +94,9 @@ def _run_install(job_id: str, payload: dict[str, Any]) -> None:
     finally:
         with lock:
             jobs.setdefault(job_id, {})["finished_at"] = time.time()
+            key = jobs[job_id].get("install_key")
+            if key and active_install_keys.get(key) == job_id:
+                active_install_keys.pop(key, None)
 
 
 @app.get("/")
@@ -184,10 +189,17 @@ def start_install():
     if payload["artifact_type"] == "mcp" and not payload.get("confirm", False):
         return jsonify({"error": "MCP installation requires confirmation", "preview": installer.preview_mcp(payload["agents"], payload["scope"], payload.get("project", ""), payload["options"])}), 409
 
-    job_id = f"job_{int(time.time() * 1000)}"
+    # A double-click or a slow browser can submit the same request twice before
+    # the UI has time to disable its button. Reuse the existing active job.
+    install_key = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     with lock:
+        existing_job_id = active_install_keys.get(install_key)
+        if existing_job_id:
+            return jsonify({"jobId": existing_job_id, "deduplicated": True})
+        job_id = f"job_{time.time_ns()}"
         log_queues[job_id] = queue.Queue()
-        jobs[job_id] = {"created_at": time.time(), "payload": payload}
+        jobs[job_id] = {"created_at": time.time(), "payload": payload, "install_key": install_key}
+        active_install_keys[install_key] = job_id
     thread = threading.Thread(target=_run_install, args=(job_id, payload), daemon=True)
     thread.start()
     return jsonify({"jobId": job_id})
@@ -198,21 +210,36 @@ def stream_logs(job_id: str):
     def event_stream():
         with lock:
             q = log_queues.get(job_id)
+            history = list(jobs.get(job_id, {}).get("events", []))
+            if q is not None:
+                # Events already captured in history should not be sent twice.
+                while not q.empty():
+                    q.get_nowait()
         if q is None:
             yield f"data: {json.dumps({'jobId': job_id, 'level': 'failed', 'message': 'Job not found', 'ts': time.time()})}\n\n"
             return
+        terminal_sent = False
         try:
+            for item in history:
+                yield f"data: {json.dumps(item, ensure_ascii=False)}\n\n"
+                if item["level"] in ("completed", "failed"):
+                    terminal_sent = True
+                    return
             while True:
                 try:
                     item = q.get(timeout=20)
                     yield f"data: {json.dumps(item, ensure_ascii=False)}\n\n"
                     if item["level"] in ("completed", "failed"):
+                        terminal_sent = True
                         break
                 except queue.Empty:
                     yield ": heartbeat\n\n"
         finally:
-            with lock:
-                log_queues.pop(job_id, None)
+            # Keep an in-progress task reconnectable if the browser drops its
+            # EventSource connection. Completed tasks can be released.
+            if terminal_sent:
+                with lock:
+                    log_queues.pop(job_id, None)
 
     return Response(event_stream(), mimetype="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
