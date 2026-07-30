@@ -123,6 +123,20 @@ def _copy_directory(source: Path, destination: Path, force: bool) -> None:
     shutil.copytree(source, destination, ignore=shutil.ignore_patterns(".git"))
 
 
+def _normalize_skill_manifest(destination: Path) -> None:
+    """Store SKILL.md as UTF-8 without BOM and with Unix line endings.
+
+    Git on Windows may check out text files with CRLF. Some skill validators
+    use LF-only frontmatter expressions, so normalize the manifest after the
+    directory copy while leaving all other skill files byte-for-byte intact.
+    """
+    manifest = destination / "SKILL.md"
+    raw = manifest.read_bytes()
+    content = raw.decode("utf-8-sig")
+    normalized = content.replace("\r\n", "\n").replace("\r", "\n")
+    manifest.write_text(normalized, encoding="utf-8", newline="\n")
+
+
 def install_skill(
     source: str,
     agent_ids: Iterable[str],
@@ -163,6 +177,7 @@ def install_skill(
                 target = destination / skill_name
                 try:
                     _copy_directory(skill_root, target, force)
+                    _normalize_skill_manifest(target)
                     _log(log_callback, f"Installed {skill_name} for {agent.name}: {target}", "success")
                     results.append({"agent_id": agent.id, "status": "installed", "destination": str(target), "message": "Installed successfully"})
                 except Exception as exc:  # noqa: BLE001

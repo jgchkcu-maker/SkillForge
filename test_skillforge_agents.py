@@ -50,7 +50,22 @@ class SkillForgeAgentTests(unittest.TestCase):
             results = install_skill(f"{source}#skill=second", ["kilo"], "project", str(project))
             self.assertEqual(results[0]["status"], "installed")
             self.assertTrue((project / ".kilo/skills/second/SKILL.md").exists())
-            self.assertFalse((project / ".kilo/skills/first").exists())
+        self.assertFalse((project / ".kilo/skills/first").exists())
+
+    def test_normalizes_skill_manifest_line_endings(self):
+        with tempfile.TemporaryDirectory() as root:
+            source = Path(root) / "source"
+            project = Path(root) / "project"
+            source.mkdir()
+            project.mkdir()
+            (source / "SKILL.md").write_bytes(
+                b"---\r\nname: demo-skill\r\ndescription: Demo\r\n---\r\n"
+            )
+            results = install_skill(str(source), ["kilo"], "project", str(project))
+            self.assertEqual(results[0]["status"], "installed")
+            installed = (project / ".kilo/skills/source/SKILL.md").read_bytes()
+            self.assertNotIn(b"\r", installed)
+            self.assertTrue(installed.startswith(b"---\n"))
 
     def test_clone_failure_is_reported_to_the_operation_log(self):
         messages = []
