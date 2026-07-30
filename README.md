@@ -2,117 +2,115 @@
 
 # SkillForge
 
-### Local-first installer for AI agent skills
+### Локальный установщик AI-скиллов для разработчиков
 
-Install portable `SKILL.md` workflows into Kilo Code, Codex, Claude Code, Gemini CLI and other compatible agents — from one calm, focused workspace.
+<p>Устанавливайте переносимые <code>SKILL.md</code>-воркфлоу в Kilo Code, Codex, Claude Code, Gemini CLI и другие совместимые инструменты — из одного понятного рабочего пространства.</p>
 
 <p>
-  <a href="https://github.com/jgchkcu-maker/SkillForge/stargazers"><img src="https://img.shields.io/github/stars/jgchkcu-maker/SkillForge?style=flat-square&color=7c5cff" alt="GitHub stars"></a>
-  <a href="https://github.com/jgchkcu-maker/SkillForge/issues"><img src="https://img.shields.io/github/issues/jgchkcu-maker/SkillForge?style=flat-square&color=00a896" alt="GitHub issues"></a>
-  <a href="https://github.com/jgchkcu-maker/SkillForge"><img src="https://img.shields.io/badge/local--first-no%20cloud%20account-111827?style=flat-square" alt="Local first"></a>
-  <a href="https://github.com/jgchkcu-maker/SkillForge/blob/main/README.md"><img src="https://img.shields.io/badge/status-active-00a896?style=flat-square" alt="Active project"></a>
+  <img src="docs/skillforge-banner.png" alt="SkillForge — локальное управление AI-скиллами" width="100%">
 </p>
 
 <p>
-  <a href="#quick-start">Quick start</a> ·
-  <a href="#what-it-does">What it does</a> ·
-  <a href="#supported-agents">Supported agents</a> ·
-  <a href="#contributing">Contributing</a>
+  <a href="https://github.com/jgchkcu-maker/SkillForge/stargazers"><img src="https://img.shields.io/github/stars/jgchkcu-maker/SkillForge?style=flat-square&color=7c5cff" alt="Звёзды GitHub"></a>
+  <a href="https://github.com/jgchkcu-maker/SkillForge/issues"><img src="https://img.shields.io/github/issues/jgchkcu-maker/SkillForge?style=flat-square&color=00a896" alt="Issues"></a>
+  <a href="https://github.com/jgchkcu-maker/SkillForge"><img src="https://img.shields.io/badge/local--first-без%20облачного%20аккаунта-111827?style=flat-square" alt="Локальная работа"></a>
+  <a href="https://github.com/jgchkcu-maker/SkillForge/blob/main/README.md"><img src="https://img.shields.io/badge/status-active-00a896?style=flat-square" alt="Активный проект"></a>
+</p>
+
+<p>
+  <a href="#быстрый-старт">Быстрый старт</a> ·
+  <a href="#как-это-работает">Как это работает</a> ·
+  <a href="#поддерживаемые-инструменты">Инструменты</a> ·
+  <a href="#участие-в-разработке">Разработка</a>
 </p>
 
 </div>
 
 ---
 
-## What it does
+## Что делает SkillForge
 
-SkillForge turns skill installation into a small, inspectable workflow:
+SkillForge превращает установку скилла в короткий и прозрачный процесс:
 
-| Discover | Choose | Install | Verify |
+| Найти | Выбрать | Установить | Проверить |
 | --- | --- | --- | --- |
-| Finds local projects and compatible AI tools | Shows only valid destinations | Copies a complete skill with its resources | Streams progress and reports the exact failure |
+| Находит локальные проекты и AI-инструменты | Показывает только подходящие места установки | Копирует весь скилл вместе с ресурсами | Показывает прогресс и точную причину ошибки |
 
-It is designed for people who work across several coding agents and want one project-aware place to manage reusable workflows.
+### Почему это удобно
 
-### Why SkillForge
+- **Учитывает проект** — устанавливает скилл в выбранную рабочую папку.
+- **Поддерживает несколько агентов** — один источник можно установить сразу в несколько инструментов.
+- **Работает локально** — приложение запускается на `127.0.0.1`, облачный аккаунт не нужен.
+- **Показывает процесс** — каждая операция сопровождается живым журналом.
+- **Безопасен по умолчанию** — существующие скиллы не перезаписываются без явного разрешения.
+- **Совместим** — использует открытый формат `SKILL.md`.
 
-- **Project-aware** — installs into the selected workspace instead of guessing.
-- **Multi-agent** — one source can be installed to several compatible destinations.
-- **Local-first** — the app runs on `127.0.0.1`; no hosted account is required.
-- **Transparent** — every installation has a live operation log.
-- **Safe by default** — existing skills are preserved unless replacement is explicitly enabled.
-- **Portable** — follows the open `SKILL.md` format used across modern coding agents.
+## Быстрый старт
 
-## Quick start
+### Требования
 
-### Requirements
-
-- Windows 10 or newer
+- Windows 10 или новее
 - Python 3.10+
 - Git
 
-### 1. Download the repository
+### 1. Скачайте репозиторий
 
 ```powershell
 git clone https://github.com/jgchkcu-maker/SkillForge.git
 cd SkillForge
 ```
 
-### 2. Install the backend dependencies
+### 2. Установите зависимости
 
 ```powershell
 python -m pip install -r requirements.txt
 ```
 
-### 3. Launch SkillForge
+### 3. Запустите SkillForge
 
-Double-click [`start-skill-forge.bat`](start-skill-forge.bat), or run:
+Дважды нажмите [`start-skill-forge.bat`](start-skill-forge.bat) или выполните:
 
 ```powershell
 .\start-skill-forge.bat
 ```
 
-The launcher starts the local backend and opens:
+После запуска откройте <http://127.0.0.1:8765>.
 
-<http://127.0.0.1:8765>
+## Установка первого скилла
 
-## Install your first skill
+1. Откройте страницу **Установка**.
+2. Выберите готовую зелёную цель, например **Kilo Code**.
+3. Вставьте URL Git-репозитория.
+4. Выберите **этот проект** или **все проекты**.
+5. Нажмите **Установить** и следите за журналом операции.
 
-1. Open the **Installation** page.
-2. Select a green, ready destination such as **Kilo Code**.
-3. Paste a Git repository URL.
-4. Choose **This project** or **All projects**.
-5. Click **Install** and follow the live journal.
-
-For repositories containing multiple skills, select one with a `#skill=` fragment:
+Если в репозитории несколько скиллов, укажите нужный через `#skill=`:
 
 ```text
 https://github.com/bergside/awesome-design-skills.git#skill=codex
 ```
 
-The selected skill will be copied to:
+Результат появится здесь:
 
 ```text
-<your-project>/.kilo/skills/<skill-name>/SKILL.md
+<ваш-проект>/.kilo/skills/<имя-скилла>/SKILL.md
 ```
 
-## Useful examples
+## Примеры источников
 
-| Use case | Source |
+| Назначение | Источник |
 | --- | --- |
-| Frontend design guidance | `https://github.com/vercel-labs/agent-skills.git#skill=frontend-design` |
-| Design review | `https://github.com/microsoft/skills.git#skill=frontend-design-review` |
-| MCP server development | `https://github.com/microsoft/skills.git#skill=mcp-builder` |
-| Planning and analysis | `https://github.com/jMerta/codex-skills.git#skill=plan-work` |
-| Taste and visual quality | `https://github.com/Leonxlnx/taste-skill.git#skill=taste-skill` |
+| Frontend-дизайн | `https://github.com/vercel-labs/agent-skills.git#skill=frontend-design` |
+| Проверка дизайна | `https://github.com/microsoft/skills.git#skill=frontend-design-review` |
+| Разработка MCP-серверов | `https://github.com/microsoft/skills.git#skill=mcp-builder` |
+| Планирование и анализ | `https://github.com/jMerta/codex-skills.git#skill=plan-work` |
+| Вкус и визуальное качество | `https://github.com/Leonxlnx/taste-skill.git#skill=taste-skill` |
 
-Always inspect third-party `SKILL.md` files before installing them. Skills are instructions that an agent may follow and can include scripts or referenced resources.
+Перед установкой стороннего скилла всегда изучайте его `SKILL.md` и вложенные скрипты.
 
-## Supported agents
+## Поддерживаемые инструменты
 
-SkillForge currently detects and routes skills for:
-
-| Agent | Project location | Global location |
+| Инструмент | В проекте | Глобально |
 | --- | --- | --- |
 | Kilo Code | `.kilo/skills` | `~/.kilo/skills` |
 | OpenAI Codex | `.agents/skills` | `$CODEX_HOME/skills` |
@@ -122,88 +120,72 @@ SkillForge currently detects and routes skills for:
 | Roo Code | `.roo/skills` | `~/.roo/skills` |
 | GitHub Copilot CLI | `.github/skills` | `~/.copilot/skills` |
 
-Availability depends on what is detected on the machine. A destination is shown as ready only when SkillForge has a known compatible path for it.
+Доступность зависит от конфигурации компьютера: цель отображается готовой только при обнаружении совместимого пути.
 
-## How it works
+## Как это работает
 
 ```mermaid
 flowchart LR
-    A[Git repository or local folder] --> B[SkillForge source preparation]
-    B --> C{SKILL.md discovery}
-    C -->|one skill| D[Destination selection]
-    C -->|multiple skills| E[#skill=NAME selection]
+    A[Git-репозиторий или локальная папка] --> B[Подготовка источника]
+    B --> C{Поиск SKILL.md}
+    C -->|Один скилл| D[Выбор цели]
+    C -->|Несколько скиллов| E[Выбор через #skill=NAME]
     E --> D
-    D --> F[Copy complete skill tree]
-    F --> G[Live result and refresh]
+    D --> F[Копирование полного дерева]
+    F --> G[Результат и обновление списка]
 ```
 
-The Flask backend owns discovery, validation, installation and streamed logs. The React frontend is a deliberately small local control surface over that backend.
+Flask-бэкенд отвечает за поиск, проверку, установку и потоковый журнал. React-интерфейс остаётся небольшим локальным пультом управления.
 
-## Development
-
-Backend:
+## Разработка
 
 ```powershell
+# Бэкенд
 python skill-forge/app.py
-```
 
-Frontend development server:
-
-```powershell
+# Фронтенд в режиме разработки
 cd skill-forge
 pnpm install
 pnpm dev
-```
 
-Production frontend build:
-
-```powershell
-cd skill-forge
+# Сборка фронтенда
 pnpm build
-```
 
-Run the focused tests from the repository root:
-
-```powershell
+# Тесты из корня репозитория
 python -m unittest test_skillforge_agents.py
 ```
 
-## Project structure
+## Структура проекта
 
 ```text
 SkillForge/
-├── skill-forge/              # React UI and Flask app shell
-│   ├── src/                  # Frontend source
-│   └── app.py                # Local API and job stream
-├── agent_registry.py         # Agent destinations and capabilities
-├── artifact_installer.py     # Skill, agent and MCP installation logic
-├── detector.py               # Local agent detection
-├── skill_installer.py        # Legacy package and project helpers
-├── start-skill-forge.bat     # Windows launcher
-└── test_skillforge_agents.py # Focused integration tests
+├── skill-forge/              # React-интерфейс и Flask API
+│   ├── src/                  # Исходники фронтенда
+│   └── app.py                # Локальный API и поток задач
+├── agent_registry.py         # Цели и возможности агентов
+├── artifact_installer.py     # Установка скиллов и MCP-артефактов
+├── detector.py               # Поиск локальных инструментов
+├── skill_installer.py        # Вспомогательная логика
+├── start-skill-forge.bat     # Запуск в Windows
+└── test_skillforge_agents.py # Интеграционные тесты
 ```
 
-## Contributing
+## Участие в разработке
 
-Issues and pull requests are welcome. A useful contribution usually includes:
+Будем рады Issues и pull request’ам. Хорошее изменение содержит описание проблемы, небольшое целевое решение и способ проверки.
 
-1. A short description of the user problem.
-2. The smallest focused change that solves it.
-3. A reproducible test or verification note.
-4. Any new agent path or format assumptions documented in the registry.
+Не добавляйте в коммиты локальные `.kilo/`, `.kilocode/`, `node_modules/`, секреты и сгенерированные логи.
 
-Please do not commit local `.kilo/`, `.kilocode/`, `node_modules/`, credentials or generated logs.
+## Безопасность
 
-## Security note
+SkillForge устанавливает инструкции из указанных вами источников. Считайте внешние скиллы недоверенными: проверяйте `SKILL.md`, вложенные скрипты и устанавливайте материалы только из источников, которым доверяете.
 
-SkillForge copies and installs instructions from sources you provide. Treat external skills as untrusted input: review `SKILL.md`, inspect bundled scripts, and install only from sources you trust.
+## Лицензия
 
-## License
-
-No license file has been added yet. Until a license is published, all rights remain with the repository owner.
+Файл лицензии пока не добавлен. До публикации лицензии все права остаются у владельца репозитория.
 
 <div align="center">
 
-Made for calmer, more portable AI coding workflows.
+Сделано для спокойной и переносимой разработки с AI.
 
 </div>
